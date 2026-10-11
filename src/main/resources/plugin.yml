@@ -1,0 +1,9 @@
+
+name: SparkChat
+version: 1.0.0
+main: pro.sparkmc.sparkchat.SparkChat
+api-version: '1.21'
+author: SparkMC
+description: SparkMC rank chat and tab colors
+depend:
+  - LuckPerms
