@@ -1,0 +1,27 @@
+
+hide-join-messages: true
+hide-leave-messages: true
+hide-advancement-announcements: true
+include-luckperms-prefix: true
+
+first-join-message: "&eWelcome &f{player} &eto SparkMC!"
+
+rank-colors:
+  member: "#555555"
+  vip: "#FFFFFF"
+  vipplus: "#55FFFF"
+  snow: "#55FFFF"
+  star: "#FFAA00"
+  booster: "#5555FF"
+  legend: "#C49A6C"
+  god: "#AA0000"
+  owner: "#AA0000"
+  sradmin: "#AA0000"
+  admin: "#FF5555"
+  developer: "#AAAAAA"
+  mod: "#0000AA"
+  helper: "#FFFF55"
+  trainee: "#5555FF"
+  media: "#FF55FF"
+  builder: "#55FF55"
+  victor: "#55FFFF"
