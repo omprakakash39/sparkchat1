@@ -12,6 +12,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameRule;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -48,8 +49,9 @@ public final class SparkChat extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
 
         if (getConfig().getBoolean("hide-advancement-announcements", true)) {
-            Bukkit.getWorlds().forEach(world ->
-                    world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false));
+            for (World world : Bukkit.getWorlds()) {
+                world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+            }
         }
 
         getLogger().info("SparkChat enabled!");
@@ -62,8 +64,10 @@ public final class SparkChat extends JavaPlugin implements Listener {
 
         for (String rank : getConfig()
                 .getConfigurationSection("rank-colors").getKeys(false)) {
-            colors.put(rank.toLowerCase(),
-                    getConfig().getString("rank-colors." + rank, "#FFFFFF"));
+            colors.put(
+                    rank.toLowerCase(),
+                    getConfig().getString("rank-colors." + rank, "#FFFFFF")
+            );
         }
     }
 
@@ -81,9 +85,11 @@ public final class SparkChat extends JavaPlugin implements Listener {
 
     private Component colored(String text, String hex) {
         TextColor color = TextColor.fromHexString(hex);
+
         if (color == null) {
             color = TextColor.color(0xFFFFFF);
         }
+
         return Component.text(text, color);
     }
 
@@ -118,7 +124,9 @@ public final class SparkChat extends JavaPlugin implements Listener {
             String message = getConfig().getString(
                     "first-join-message",
                     "&eWelcome &f{player} &eto SparkMC!"
-            ).replace("{player}", player.getName());
+            );
+
+            message = message.replace("{player}", player.getName());
 
             Bukkit.broadcast(LEGACY.deserialize(
                     ChatColor.translateAlternateColorCodes('&', message)
@@ -139,21 +147,30 @@ public final class SparkChat extends JavaPlugin implements Listener {
         String message = event.getMessage();
         String rankColor = getRankColor(player);
 
-        String prefix = "";
+        String foundPrefix = "";
+
         if (getConfig().getBoolean("include-luckperms-prefix", true)) {
-            prefix = getPrefix(player);
+            foundPrefix = getPrefix(player);
         }
+
+        final String prefix = foundPrefix;
+        final Component playerName = colored(player.getName(), rankColor);
+        final Component chatMessage = colored(message, rankColor);
 
         event.setCancelled(true);
 
         Bukkit.getScheduler().runTask(this, () -> {
             Component output = LEGACY.deserialize(prefix)
-                    .append(colored(player.getName(), rankColor))
-                    .append(Component.text(" \u00BB ", TextColor.color(0x555555)))
-                    .append(colored(message, rankColor));
+                    .append(playerName)
+                    .append(Component.text(
+                            " \u00BB ",
+                            TextColor.color(0x555555)
+                    ))
+                    .append(chatMessage);
 
             Bukkit.getOnlinePlayers().forEach(viewer ->
-                    viewer.sendMessage(output));
+                    viewer.sendMessage(output)
+            );
         });
     }
-          }
+}
