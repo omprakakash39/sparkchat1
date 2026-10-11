@@ -24,6 +24,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public final class SparkChat extends JavaPlugin implements Listener {
 
@@ -53,6 +54,22 @@ public final class SparkChat extends JavaPlugin implements Listener {
                 world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
             }
         }
+
+        // Update TAB names when LuckPerms changes a player's data.
+        luckPerms.getEventBus().subscribe(
+                this,
+                net.luckperms.api.event.user.UserDataRecalculateEvent.class,
+                event -> {
+                    UUID uuid = event.getUser().getUniqueId();
+
+                    Bukkit.getScheduler().runTask(this, () -> {
+                        Player player = Bukkit.getPlayer(uuid);
+                        if (player != null && player.isOnline()) {
+                            updateTabName(player);
+                        }
+                    });
+                }
+        );
 
         getLogger().info("SparkChat enabled!");
     }
@@ -93,6 +110,12 @@ public final class SparkChat extends JavaPlugin implements Listener {
         return Component.text(text, color);
     }
 
+    private void updateTabName(Player player) {
+        player.playerListName(
+                colored(player.getName(), getRankColor(player))
+        );
+    }
+
     private String getPrefix(Player player) {
         User user = getUser(player);
 
@@ -116,17 +139,13 @@ public final class SparkChat extends JavaPlugin implements Listener {
             event.joinMessage(null);
         }
 
-        player.playerListName(
-                colored(player.getName(), getRankColor(player))
-        );
+        updateTabName(player);
 
         if (!player.hasPlayedBefore()) {
             String message = getConfig().getString(
                     "first-join-message",
                     "&eWelcome &f{player} &eto SparkMC!"
-            );
-
-            message = message.replace("{player}", player.getName());
+            ).replace("{player}", player.getName());
 
             Bukkit.broadcast(LEGACY.deserialize(
                     ChatColor.translateAlternateColorCodes('&', message)
@@ -168,9 +187,9 @@ public final class SparkChat extends JavaPlugin implements Listener {
                     ))
                     .append(chatMessage);
 
-            Bukkit.getOnlinePlayers().forEach(viewer ->
-                    viewer.sendMessage(output)
-            );
+            for (Player viewer : Bukkit.getOnlinePlayers()) {
+                viewer.sendMessage(output);
+            }
         });
     }
-}
+                             }
